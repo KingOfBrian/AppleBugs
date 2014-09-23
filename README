@@ -1,0 +1,2 @@
+
+This repository contains sample projects to reproduce bugs that have been logged to apple.   Some of them have a define WORK_AROUND, which when defined will work around the issue.
