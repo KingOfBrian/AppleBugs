@@ -12,6 +12,7 @@
 
 @property (assign, nonatomic) BOOL heightToggle;
 @property (assign, nonatomic) CGPoint lastContentOffset;
+@property (assign, nonatomic) BOOL expectContentOffsetIssue;
 
 @end
 
@@ -54,21 +55,25 @@
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
     self.heightToggle = !self.heightToggle;
+    [CATransaction begin];
+    [CATransaction setCompletionBlock:^{
+        self.expectContentOffsetIssue = YES;
+    }];
+
     [self.tableView beginUpdates];
     [self.tableView endUpdates];
+    [CATransaction commit];
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-    if ( self.tableView.isTracking ) {
 #ifdef WORK_AROUND
-        BOOL drasticShift = fabs(self.tableView.contentOffset.y - self.lastContentOffset.y) > 10;
-        if ( drasticShift && self.tableView.isTracking ) {
-            self.tableView.contentOffset = self.lastContentOffset;
-        }
-        self.lastContentOffset = self.tableView.contentOffset;
-#endif
+    if ( self.expectContentOffsetIssue ) {
+        self.tableView.contentOffset = self.lastContentOffset;
+        self.expectContentOffsetIssue = NO;
     }
+    self.lastContentOffset = self.tableView.contentOffset;
+#endif
 }
 
 @end
